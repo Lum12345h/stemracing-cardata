@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Peso F1 in Schools - Cloud Sync</title>
+    <title>Calculadora de Peso F1 in Schools - STEM Racing</title>
     <!-- Fuente Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     
-    <!-- FIREBASE SDK (Necesario para guardar en la nube) -->
+    <!-- FIREBASE SDK (Versión compatible para navegador directo) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         :root {
-            --primary: #e10600; /* F1 Red */
+            --primary: #e10600; /* Rojo F1 */
             --dark: #15151e;
             --light: #f1f1f1;
             --success: #2ecc71;
@@ -43,6 +43,7 @@
             text-align: center;
             border-bottom: 5px solid var(--primary);
             margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
         }
 
         h1 {
@@ -55,26 +56,7 @@
         .subtitle {
             font-size: 0.9em;
             color: #aaa;
-        }
-
-        /* Config Panel */
-        #config-panel {
-            background: #fff;
-            padding: 15px;
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            display: none; /* Oculto por defecto */
-        }
-
-        .btn-config {
-            background: #555;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            font-size: 12px;
-            cursor: pointer;
-            border-radius: 4px;
+            margin-top: 5px;
         }
 
         /* Grid Layout */
@@ -123,11 +105,13 @@
             border-radius: 5px;
             font-size: 1rem;
             box-sizing: border-box;
+            background: #fafafa;
         }
 
         input:focus {
             outline: none;
             border-color: var(--primary);
+            background: #fff;
         }
 
         .help-text {
@@ -163,6 +147,7 @@
             margin-top: 10px;
             font-weight: bold;
             text-transform: uppercase;
+            text-align: center;
         }
 
         .status-pass { background-color: var(--success); color: white; }
@@ -205,6 +190,7 @@
             transition: background 0.3s;
             margin-top: 20px;
             text-transform: uppercase;
+            font-family: 'Orbitron', sans-serif;
         }
 
         .btn-save:hover {
@@ -215,14 +201,22 @@
             color: var(--danger);
             cursor: pointer;
             font-weight: bold;
+            text-align: center;
         }
 
         #db-status {
             font-size: 0.8rem;
             margin-left: 10px;
+            float: right;
+            margin-top: -50px; /* Ajuste para header */
+            margin-right: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
         }
-        .online { color: var(--success); }
-        .offline { color: var(--danger); }
+        .online { color: #2ecc71 !important; }
+        .offline { color: #e74c3c !important; }
 
     </style>
 </head>
@@ -230,32 +224,12 @@
 
 <header>
     <h1>F1 Weight Tracker</h1>
-    <div class="subtitle">Calculadora de Peso y Registro Histórico (Cloud)</div>
+    <div class="subtitle">Control de Peso - Categoría Desarrollo</div>
+    <span id="db-status" class="offline">● Conectando...</span>
 </header>
 
 <div class="container">
     
-    <!-- Botón para configurar Firebase -->
-    <div style="text-align: right; margin-bottom: 10px;">
-        <span id="db-status" class="offline">● Desconectado (Datos locales)</span>
-        <button class="btn-config" onclick="toggleConfig()">⚙️ Configurar Base de Datos</button>
-    </div>
-
-    <!-- Panel de Configuración de Firebase -->
-    <div id="config-panel">
-        <h3>Conexión con Firebase (Nube)</h3>
-        <p class="help-text">Ingresa tus datos de proyecto de Firebase para guardar el historial en internet.</p>
-        <div class="input-group">
-            <label>API Key:</label>
-            <input type="text" id="fb-apiKey" placeholder="AIzaSy...">
-        </div>
-        <div class="input-group">
-            <label>Project ID:</label>
-            <input type="text" id="fb-projectId" placeholder="f1-weight-tracker...">
-        </div>
-        <button class="btn-config" style="background: var(--success);" onclick="saveConfig()">Guardar y Conectar</button>
-    </div>
-
     <div class="dashboard">
         
         <!-- Panel Izquierdo: Datos -->
@@ -264,13 +238,13 @@
             
             <div class="input-group">
                 <label>Nombre del Prototipo</label>
-                <input type="text" id="protoName" placeholder="Ej. Prototipo 7 - Vaciado agresivo">
+                <input type="text" id="protoName" placeholder="Ej. Prototipo 8 - Vaciado Inferior">
             </div>
 
             <div class="input-group">
                 <label>Volumen del Cuerpo (Fusion 360)</label>
-                <input type="number" id="volume" placeholder="Ej. 154100" oninput="calculate()">
-                <div class="help-text">Unidad: mm³. Copia esto de "Properties" en Fusion.</div>
+                <input type="number" id="volume" placeholder="Ej. 92000" oninput="calculate()">
+                <div class="help-text">Copia el valor "Volume" (mm³) de las Propiedades en Fusion.</div>
             </div>
 
             <div class="input-group">
@@ -278,19 +252,19 @@
                 <select id="density" onchange="calculate()">
                     <option value="0.00038" selected>Espuma Oficial (0.38 g/cm³)</option>
                     <option value="0.00032">Espuma Ligera (0.32 g/cm³)</option>
-                    <option value="0.00045">Espuma Pesada (0.45 g/cm³)</option>
-                    <option value="0.001">Plástico Sólido (1.0 g/cm³) - NO USAR</option>
+                    <option value="0.00040">Espuma Estándar (0.40 g/cm³)</option>
                 </select>
+                <div class="help-text">La espuma de poliuretano NO pesa 1.0 g/cm³.</div>
             </div>
 
             <h2>2. Componentes (Peso Muerto)</h2>
             <div class="input-group">
                 <label>Peso Componentes (Ruedas, Ejes, Pintura)</label>
                 <input type="number" id="components" value="28.0" oninput="calculate()">
-                <div class="help-text">Recomendado: 28g (Ruedas ~18g + Pintura/Otros ~10g)</div>
+                <div class="help-text">Estándar: ~28g (Incluye pintura, ejes, ruedas, guías)</div>
             </div>
 
-            <button class="btn-save" onclick="saveToCloud()">💾 Guardar en Historial</button>
+            <button class="btn-save" onclick="saveToCloud()">💾 Guardar en Nube</button>
         </div>
 
         <!-- Panel Derecho: Resultados -->
@@ -310,43 +284,57 @@
             </div>
 
             <div id="status-bar" class="status status-fail">
-                Estado: Faltan datos
+                Esperando datos...
             </div>
 
-            <div style="margin-top: 20px;">
-                <p><strong>Meta:</strong> 60.5g (Mínimo reglamento + margen)</p>
-                <p><strong>Diferencia:</strong> <span id="res-diff">0.00</span>g</p>
+            <div style="margin-top: 20px; font-size: 0.9rem;">
+                <p><strong>Meta Ideal:</strong> 60.5g (Mínimo reglamento + 0.5g margen)</p>
+                <p><strong>Diferencia:</strong> <span id="res-diff" style="font-weight: bold;">0.00</span>g</p>
+                <p class="help-text" style="border-top: 1px solid #eee; padding-top: 5px;">
+                    *Si pesa menos de 60g te penalizan con lastre extra.
+                </p>
             </div>
         </div>
     </div>
 
     <!-- Panel Inferior: Historial -->
     <div class="card" style="margin-top: 20px;">
-        <h2>Historial de Versiones (Guardado en Nube)</h2>
+        <h2>Historial de Prototipos (Nube)</h2>
         <table id="history-table">
             <thead>
                 <tr>
                     <th>Fecha</th>
                     <th>Nombre</th>
-                    <th>Volumen (mm³)</th>
+                    <th>Vol (mm³)</th>
                     <th>Cuerpo (g)</th>
                     <th>Total (g)</th>
-                    <th>Acción</th>
+                    <th>Borrar</th>
                 </tr>
             </thead>
             <tbody id="history-body">
-                <tr><td colspan="6">Cargando datos...</td></tr>
+                <tr><td colspan="6">Conectando a base de datos...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
+    // --- TUS CREDENCIALES DE FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyB-2Msum38niRguUCbiSwHInWKWcHt15T8",
+        authDomain: "stem-datos-auto.firebaseapp.com",
+        databaseURL: "https://stem-datos-auto-default-rtdb.firebaseio.com",
+        projectId: "stem-datos-auto",
+        storageBucket: "stem-datos-auto.firebasestorage.app",
+        messagingSenderId: "69064921602",
+        appId: "1:69064921602:web:5d2f57ccafcd90e5898d1b",
+        measurementId: "G-D64W8H6VL2"
+    };
+
     // --- VARIABLES GLOBALES ---
     let db = null;
-    let firebaseConfig = {};
     const MIN_WEIGHT = 60.0;
-    const SAFE_WEIGHT = 60.5;
+    const SAFE_WEIGHT = 60.5; // Meta con margen
 
     // --- FUNCIONES DE CÁLCULO ---
     function calculate() {
@@ -365,95 +353,59 @@
         
         const diffEl = document.getElementById('res-diff');
         diffEl.innerText = (diff > 0 ? "+" : "") + diff.toFixed(2);
-        diffEl.style.color = diff > 0 ? "red" : "green";
+        diffEl.style.color = diff > 0 ? "#e74c3c" : "#2ecc71"; // Rojo si sobra peso
 
         // Actualizar Barra de Estado
         const statusEl = document.getElementById('status-bar');
+        
+        if (vol === 0) {
+            statusEl.className = 'status';
+            statusEl.style.background = '#ddd';
+            statusEl.innerText = "Ingresa Volumen";
+            return { bodyMass, totalMass };
+        }
+
         if (totalMass < MIN_WEIGHT) {
             statusEl.className = 'status status-fail';
-            statusEl.innerText = "⛔ ILEGAL (Muy ligero - Penalización)";
+            statusEl.innerText = "⛔ ILEGAL (Penalización por Lastre)";
         } else if (totalMass >= MIN_WEIGHT && totalMass <= 63.0) {
             statusEl.className = 'status status-pass';
-            statusEl.innerText = "✅ EXCELENTE (Competitivo)";
+            statusEl.innerText = "✅ EXCELENTE (Listo para Competir)";
         } else {
             statusEl.className = 'status status-warn';
-            statusEl.innerText = "⚠️ LEGAL PERO PESADO (Lento)";
+            statusEl.innerText = "⚠️ LEGAL PERO PESADO";
         }
 
         return { bodyMass, totalMass };
     }
 
-    // --- CONFIGURACIÓN FIREBASE ---
-    function toggleConfig() {
-        const panel = document.getElementById('config-panel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        
-        // Cargar config guardada si existe en local para rellenar campos
-        const savedConfig = localStorage.getItem('f1_firebase_config');
-        if (savedConfig) {
-            const parsed = JSON.parse(savedConfig);
-            document.getElementById('fb-apiKey').value = parsed.apiKey;
-            document.getElementById('fb-projectId').value = parsed.projectId;
-        }
-    }
-
-    function saveConfig() {
-        const apiKey = document.getElementById('fb-apiKey').value;
-        const projectId = document.getElementById('fb-projectId').value;
-
-        if (!apiKey || !projectId) {
-            alert("Por favor ingresa ambos datos");
-            return;
-        }
-
-        const config = {
-            apiKey: apiKey,
-            authDomain: `${projectId}.firebaseapp.com`,
-            databaseURL: `https://${projectId}-default-rtdb.firebaseio.com`,
-            projectId: projectId,
-            storageBucket: `${projectId}.appspot.com`,
-            messagingSenderId: "00000000000", // No crítico para DB
-            appId: "1:00000000:web:000000" // No crítico para DB básica
-        };
-
-        localStorage.setItem('f1_firebase_config', JSON.stringify(config));
-        location.reload(); // Recargar para conectar
-    }
-
+    // --- INICIALIZAR FIREBASE ---
     function initFirebase() {
-        const savedConfig = localStorage.getItem('f1_firebase_config');
         const statusLabel = document.getElementById('db-status');
-
-        if (savedConfig) {
-            try {
-                firebaseConfig = JSON.parse(savedConfig);
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.database();
-                statusLabel.innerText = "● Conectado a la Nube";
-                statusLabel.className = "online";
-                listenForData();
-            } catch (e) {
-                console.error(e);
-                statusLabel.innerText = "● Error de Conexión";
-            }
-        } else {
-            statusLabel.innerText = "● Modo Local (Sin guardar en nube)";
-            document.getElementById('history-body').innerHTML = "<tr><td colspan='6'>Configura Firebase para ver el historial.</td></tr>";
+        try {
+            // Inicializar la app con tus datos
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            
+            statusLabel.innerText = "● Conectado a la Nube";
+            statusLabel.className = "online";
+            
+            // Comenzar a escuchar datos
+            listenForData();
+        } catch (e) {
+            console.error(e);
+            statusLabel.innerText = "● Error de Conexión";
+            statusLabel.className = "offline";
         }
     }
 
     // --- GUARDAR Y LEER DATOS ---
     function saveToCloud() {
-        if (!db) {
-            alert("Primero configura la base de datos en el engranaje ⚙️");
-            return;
-        }
-
         const name = document.getElementById('protoName').value || "Sin Nombre";
         const vol = document.getElementById('volume').value;
         const res = calculate();
 
-        if (vol <= 0) { alert("Ingresa un volumen válido"); return; }
+        if (vol <= 0) { alert("Ingresa un volumen válido del CAD"); return; }
 
         const newEntry = {
             date: new Date().toISOString(),
@@ -463,9 +415,9 @@
             totalMass: res.totalMass.toFixed(2)
         };
 
-        // Guardar en Firebase (Push crea un ID único)
+        // Guardar en Firebase
         db.ref('prototypes').push(newEntry)
-            .then(() => alert("✅ Guardado en la nube"))
+            .then(() => alert("✅ Prototipo guardado en la nube correctamente"))
             .catch(e => alert("Error al guardar: " + e.message));
     }
 
@@ -478,7 +430,7 @@
             const data = snapshot.val();
 
             if (!data) {
-                tableBody.innerHTML = "<tr><td colspan='6'>No hay registros aún.</td></tr>";
+                tableBody.innerHTML = "<tr><td colspan='6' style='text-align:center'>No hay registros guardados aún.</td></tr>";
                 return;
             }
 
@@ -487,15 +439,17 @@
             entries.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             entries.forEach(entry => {
-                const date = new Date(entry.date).toLocaleString();
+                const dateObj = new Date(entry.date);
+                const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
                 const row = `
                     <tr>
-                        <td>${date}</td>
+                        <td style="color:#666; font-size:0.8em">${dateStr}</td>
                         <td><strong>${entry.name}</strong></td>
                         <td>${entry.volume}</td>
                         <td>${entry.bodyMass}</td>
-                        <td style="font-weight:bold; color:${entry.totalMass < 60 ? 'red' : 'green'}">${entry.totalMass}</td>
-                        <td><span class="delete-btn" onclick="deleteEntry('${entry.key}')">❌</span></td>
+                        <td style="font-weight:bold; color:${entry.totalMass > 65 ? '#f1c40f' : (entry.totalMass < 60 ? '#e74c3c' : '#2ecc71')}">${entry.totalMass}</td>
+                        <td style="text-align:center"><span class="delete-btn" onclick="deleteEntry('${entry.key}')">🗑️</span></td>
                     </tr>
                 `;
                 tableBody.innerHTML += row;
@@ -504,12 +458,12 @@
     }
 
     function deleteEntry(key) {
-        if(confirm("¿Borrar este registro para siempre?")) {
+        if(confirm("¿Estás seguro de borrar este registro del historial?")) {
             db.ref('prototypes/' + key).remove();
         }
     }
 
-    // Iniciar
+    // Iniciar al cargar la página
     window.onload = function() {
         initFirebase();
         calculate();
