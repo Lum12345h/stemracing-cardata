@@ -271,18 +271,27 @@
                 <select id="density" onchange="calculate()">
                     <!-- 0.163 g/cm3 dividido entre 1000 = 0.000163 g/mm3 -->
                     <option value="0.000163" selected>Bloque Denford Oficial (0.163 g/cm³)</option>
-                    <option value="0.00032">Espuma Alternativa (0.32 g/cm³)</option>
-                    <option value="0.00040">Espuma Pesada (0.40 g/cm³)</option>
+                    <option value="0.000151">Bloque Ligero (0.151 g/cm³)</option>
+                    <option value="0.000175">Bloque Pesado (0.175 g/cm³)</option>
                 </select>
                 <div class="help-text">Datos basados en F1 Model Block Datasheet (Denford).</div>
             </div>
 
             <h2>2. Componentes (Peso Muerto)</h2>
             <div class="input-group">
-                <label>Peso Componentes (Llantas + Ejes + Pintura)</label>
-                <!-- Cálculo: 4 llantas (28g) + Ejes (~12g) + Pintura/Hardw (~4g) = 44g -->
-                <input type="number" id="components" value="44.0" oninput="calculate()">
-                <div class="help-text">4 Llantas (28g) + Ejes y Pintura (~16g) ≈ 44g</div>
+                <label>Peso Componentes (Llantas, Ejes, Halo, Casco)</label>
+                <!-- 
+                    CÁLCULO EXACTO (PLA 1.24 g/cm3):
+                    Halo (4533mm3): ~5.62g
+                    Casco (1447mm3): ~1.79g
+                    Llantas (4x): 14g
+                    Ejes/Pintura: 7g
+                    TOTAL: 28.41g
+                -->
+                <input type="number" id="components" value="28.5" oninput="calculate()">
+                <div class="help-text">
+                    Llantas(14) + Ejes(7) + Halo(~5.6) + Casco(~1.8) ≈ 28.4g
+                </div>
             </div>
 
             <button class="btn-save" onclick="saveToCloud()">💾 Guardar en Nube</button>
